@@ -437,9 +437,9 @@ static int do_get_nl_link(int fd, __u8 acquire, const char *name, void *res)
 				continue;
 
 			if (acquire == GET_XSTATS) {
-				if (!linkinfo[IFLA_INFO_XSTATS])
+				if (!linkinfo[IFLA_INFO_XSTATS]) {
 					fprintf(stderr, "no can statistics found\n");
-				else {
+				} else {
 					memcpy(res, RTA_DATA(linkinfo[IFLA_INFO_XSTATS]),
 					       sizeof(struct can_device_stats));
 					ret = 0;
