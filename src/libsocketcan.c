@@ -42,8 +42,8 @@
 
 /* Define DISABLE_ERROR_LOG to disable printing of error messages to stderr. */
 #ifdef DISABLE_ERROR_LOG
-#define perror(x)
-#define fprintf(...)
+#define perror(x)				while (0) { perror(x); }
+#define fprintf(stream, format, args...)	while (0) { fprintf(stream, format, ##args); }
 #endif
 
 #define parse_rtattr_nested(tb, max, rta) \
