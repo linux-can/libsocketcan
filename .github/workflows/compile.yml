@@ -1,0 +1,111 @@
+name: native and cross
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        release:
+        - "ubuntu:20.04"
+        - "ubuntu:22.04"
+        - "ubuntu:24.04"
+        - "ubuntu:rolling"
+        - "debian:oldstable-slim"
+        - "debian:stable-slim"
+        - "debian:testing-slim"
+        - "debian:unstable-slim"
+        - "debian:experimental"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Prepare ${{ matrix.release }} container
+      env:
+        release: ${{ matrix.release == 'debian:experimental' && '-t experimental' || '' }}
+      run: |
+        podman version
+        podman run --name stable -di --userns=keep-id:uid=1000,gid=1000 -v "$PWD":/home -w /home ${{ matrix.release }} bash
+        podman exec -i stable uname -a
+        podman exec -i stable id
+        podman exec -i -u root stable apt update
+        podman exec -e DEBIAN_FRONTEND='noninteractive' -i -u root stable apt install -o APT::Install-Suggests=false -qy ${release} \
+                automake \
+                clang \
+                gcc \
+                gcc-aarch64-linux-gnu \
+                gcc-arm-linux-gnueabihf \
+                gcc-mips-linux-gnu \
+                intltool \
+                libtool \
+                make \
+                sed
+
+    - name: autogen
+      run: |
+        podman exec -i stable ./autogen.sh
+                
+    - name: Configure & Build with gcc
+      env:
+        CC: gcc
+      run: |
+        podman exec -i stable bash -c "mkdir build-${CC} && cd build-${CC} && ../configure"
+        podman exec -i stable make -C build-${CC}
+
+    - name: Configure & Build with clang
+      env:
+        CC: clang
+      run: |
+        podman exec -i stable bash -c "mkdir build-${CC} && cd build-${CC} && ../configure"
+        podman exec -i stable make -C build-${CC}
+
+    - name: Configure & Build with arm-linux-gnueabihf-gcc
+      env:
+        host: arm-linux-gnueabihf
+      run: |
+        podman exec -i stable bash -c "mkdir build-${host} && cd build-${host} && ../configure --host=${host}"
+        podman exec -i stable make -C build-${host}
+
+    - name: Configure & Build with arm-linux-gnueabihf-clang
+      if:
+        ${{ matrix.release != 'ubuntu:20.04' && matrix.release != 'debian:oldstable-slim' }}
+      env:
+        host: arm-linux-gnueabihf
+      run: |
+        podman exec -i stable bash -c "mkdir build-${host}-clang && cd build-${host}-clang && ../configure --host=${host} CC=\"clang --target=${host}\""
+        podman exec -i stable make -C build-${host}-clang
+
+    - name: Configure & Build with aarch64-linux-gnu
+      env:
+        host: aarch64-linux-gnu
+      run: |
+        podman exec -i stable bash -c "mkdir build-${host} && cd build-${host} && ../configure --host=${host}"
+        podman exec -i stable make -C build-${host}
+
+    - name: Configure & Build with aarch64-linux-gnu-clang
+      if:
+        ${{ matrix.release != 'ubuntu:20.04' && matrix.release != 'debian:oldstable-slim' }}
+      env:
+        host: aarch64-linux-gnu
+      run: |
+        podman exec -i stable bash -c "mkdir build-${host}-clang && cd build-${host}-clang && ../configure --host=${host} CC=\"clang --target=${host}\""
+        podman exec -i stable make -C build-${host}-clang
+
+    - name: Configure & Build with mips-linux-gnu
+      env:
+        host: mips-linux-gnu
+      run: |
+        podman exec -i stable bash -c "mkdir build-${host} && cd build-${host} && ../configure --host=${host}"
+        podman exec -i stable make -C build-${host}
+
+    - name: Show logs
+      if: ${{ failure() }}
+      run: |
+        for log in build-*/config.log; do \
+                if [ -e ${log} ]; then \
+                        echo "---------------- ${log} ----------------"; \
+                        cat ${log}; \
+                fi; \
+        done
