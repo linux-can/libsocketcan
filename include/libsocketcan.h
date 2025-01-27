@@ -40,6 +40,7 @@ int can_do_start(const char *name);
 
 int can_set_restart_ms(const char *name, __u32 restart_ms);
 int can_set_bittiming(const char *name, struct can_bittiming *bt);
+int can_set_canfd_bittiming(const char *name, struct can_bittiming *bt, struct can_bittiming *dbt);
 int can_set_ctrlmode(const char *name, struct can_ctrlmode *cm);
 int can_set_bitrate(const char *name, __u32 bitrate);
 int can_set_bitrate_samplepoint(const char *name, __u32 bitrate, __u32 sample_point);
