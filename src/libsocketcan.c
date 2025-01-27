@@ -84,6 +84,7 @@ struct req_info {
 	__u32 restart_ms;
 	struct can_ctrlmode *ctrlmode;
 	struct can_bittiming *bittiming;
+	struct can_bittiming *dbittiming;
 };
 
 /**
@@ -648,6 +649,12 @@ static int do_set_nl_link(int fd, __u8 if_state, const char *name,
 				  sizeof(struct can_bittiming));
 		}
 
+		if (req_info->dbittiming != NULL) {
+			addattr_l(&req.n, 1024, IFLA_CAN_DATA_BITTIMING,
+				  req_info->dbittiming,
+				  sizeof(struct can_bittiming));
+		}
+
 		if (req_info->ctrlmode != NULL) {
 			addattr_l(&req.n, 1024, IFLA_CAN_CTRLMODE,
 				  req_info->ctrlmode,
@@ -911,6 +918,59 @@ int can_set_bittiming(const char *name, struct can_bittiming *bt)
 {
 	struct req_info req_info = {
 		.bittiming = bt,
+	};
+
+	return set_link(name, 0, &req_info);
+}
+
+/**
+ * @ingroup extern
+ * can_set_data_bittiming - setup the bittiming for CAN FD Data transmission.
+ *
+ * @param name name of the can device. This is the netdev name, as ifconfig -a shows
+ * in your system. usually it contains prefix "can" and the numer of the can
+ * line. e.g. "can0"
+ * @param bt pointer to a can_bittiming struct
+ *
+ * This sets the bittiming of the can device for the data transmission if CAN FD is enabled. This is for advantage usage. In
+ * normal cases you should use can_set_bitrate to simply define the bitrate and
+ * let the driver automatically calculate the bittiming. You will only need this
+ * function if you wish to define the bittiming in expert mode with fully
+ * manually defined timing values.
+ * You have to define the bittiming struct yourself. a can_bittiming struct
+ * consists of:
+ *
+ * @code
+ * struct can_bittiming {
+ *	__u32 bitrate;
+ *	__u32 sample_point;
+ *	__u32 tq;
+ *	__u32 prop_seg;
+ *	__u32 phase_seg1;
+ *	__u32 phase_seg2;
+ *	__u32 sjw;
+ *	__u32 brp;
+ * }
+ * @endcode
+ *
+ * to define a customized bittiming, you have to define tq, prop_seq,
+ * phase_seg1, phase_seg2 and sjw. See http://www.can-cia.org/index.php?id=88
+ * for more information about bittiming and synchronizations on can bus.
+ *
+ * @return 0 if success
+ * @return -1 if failed
+ */
+
+int can_set_canfd_bittiming(const char *name, struct can_bittiming *bt, struct can_bittiming *dbt)
+{
+	struct can_ctrlmode ctrl = {
+		.mask = CAN_CTRLMODE_FD,
+		.flags = CAN_CTRLMODE_FD,
+	};
+	struct req_info req_info = {
+		.bittiming = bt,
+		.dbittiming = dbt,
+		.ctrlmode = &ctrl
 	};
 
 	return set_link(name, 0, &req_info);
