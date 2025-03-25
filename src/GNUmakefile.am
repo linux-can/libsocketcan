@@ -15,3 +15,5 @@ libsocketcan_la_LDFLAGS = \
 #
 MAINTAINERCLEANFILES = \
 	GNUmakefile.in
+
+CLEANFILES = *.gcda *.gcno

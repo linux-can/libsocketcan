@@ -41,6 +41,7 @@ jobs:
                 intltool \
                 libtool \
                 make \
+                pkg-config \
                 sed
 
     - name: autogen

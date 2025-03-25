@@ -115,6 +115,31 @@ if test "${CONFIG_ERROR_LOG}" = "no"; then
     AC_DEFINE(DISABLE_ERROR_LOG, 1, [disable error logging])
 fi
 
+#
+# Enable gcov
+#
+AC_MSG_CHECKING([whether to enable gcov])
+AC_ARG_ENABLE([gcov],
+  [AS_HELP_STRING([--enable-gcov], [Enable gcov in build time (for debug, default is no)])],
+  [:],
+  [enable_gcov=no])
+AC_MSG_RESULT([$enable_gcov])
+if test "$enable_gcov" = "yes"; then
+    CFLAGS="${CFLAGS} -coverage"
+fi
+
+#
+# Enable address-sanitizer
+#
+AC_MSG_CHECKING([whether to enable address-sanitizer])
+AC_ARG_ENABLE([address-sanitizer],
+  [AS_HELP_STRING([--enable-address-sanitizer], [Enable address sanitizer in build time (for debug, default is no)])],
+  [:],
+  [enable_address_sanitizer=no])
+AC_MSG_RESULT([$enable_address_sanitizer])
+if test "$enable_address_sanitizer" = "yes"; then
+    CFLAGS="${CFLAGS} -fsanitize=address"
+fi
 
 AC_CONFIG_FILES([
 	GNUmakefile
