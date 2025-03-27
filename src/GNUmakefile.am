@@ -6,7 +6,8 @@ AM_CPPFLAGS = \
 
 libsocketcan_la_SOURCES = \
 	libsocketcan-utils.c \
-	libsocketcan.c
+	libsocketcan.c \
+	libcangw.c
 
 libsocketcan_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
