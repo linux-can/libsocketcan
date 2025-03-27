@@ -21,8 +21,13 @@ autom4te.cache/
 
 src/.libs/
 src/*.l*
+src/*.gcda
+src/*.gcno
 tests/.libs/
 tests/test
+test/gwtest
+test/*.gcda
+test/*.gcno
 
 *~
 *.o
