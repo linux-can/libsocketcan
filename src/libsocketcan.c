@@ -21,10 +21,7 @@
  * @file
  * @brief library code
  */
-
-#ifdef HAVE_CONFIG_H
-#include "libsocketcan_config.h"
-#endif
+#include "libsocketcan-utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,17 +37,8 @@
 
 #include <libsocketcan.h>
 
-/* Define DISABLE_ERROR_LOG to disable printing of error messages to stderr. */
-#ifdef DISABLE_ERROR_LOG
-#define perror(x)				while (0) { perror(x); }
-#define fprintf(stream, format, args...)	while (0) { fprintf(stream, format, ##args); }
-#endif
-
 #define parse_rtattr_nested(tb, max, rta) \
 	(parse_rtattr((tb), (max), RTA_DATA(rta), RTA_PAYLOAD(rta)))
-
-#define NLMSG_TAIL(nmsg) \
-	((struct rtattr *) (((void *) (nmsg)) + NLMSG_ALIGN((nmsg)->nlmsg_len)))
 
 #define IFLA_CAN_MAX	(__IFLA_CAN_MAX - 1)
 
@@ -106,49 +94,6 @@ parse_rtattr(struct rtattr **tb, int max, struct rtattr *rta, int len)
 
 		rta = RTA_NEXT(rta, len);
 	}
-}
-
-static int addattr32(struct nlmsghdr *n, size_t maxlen, int type, __u32 data)
-{
-	int len = RTA_LENGTH(4);
-	struct rtattr *rta;
-
-	if (NLMSG_ALIGN(n->nlmsg_len) + len > maxlen) {
-		fprintf(stderr,
-			"addattr32: Error! max allowed bound %zu exceeded\n",
-			maxlen);
-		return -1;
-	}
-
-	rta = NLMSG_TAIL(n);
-	rta->rta_type = type;
-	rta->rta_len = len;
-	memcpy(RTA_DATA(rta), &data, 4);
-	n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + len;
-
-	return 0;
-}
-
-static int addattr_l(struct nlmsghdr *n, size_t maxlen, int type,
-		     const void *data, int alen)
-{
-	int len = RTA_LENGTH(alen);
-	struct rtattr *rta;
-
-	if (NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len) > maxlen) {
-		fprintf(stderr,
-			"addattr_l ERROR: message exceeded bound of %zu\n",
-			maxlen);
-		return -1;
-	}
-
-	rta = NLMSG_TAIL(n);
-	rta->rta_type = type;
-	rta->rta_len = len;
-	memcpy(RTA_DATA(rta), data, alen);
-	n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len);
-
-	return 0;
 }
 
 /**
