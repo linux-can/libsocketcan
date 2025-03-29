@@ -31,6 +31,18 @@ int cangw_add_rule_test(void)
 		return -2;
 	}
 
+	ret = cangw_add_rule(&gw_rule);
+	if (ret < 0) {
+		fprintf(stdout,"cangw_add_rule is failed ret = %d\n",ret);
+		return -3;
+	}
+
+	ret = cangw_clean_rule(if_nametoindex("vcan0"), if_nametoindex("vxcan0"));
+	if (ret < 0) {
+		fprintf(stdout,"cangw_clean_rule is failed ret = %d\n",ret);
+		return -4;
+	}
+
 	return 0;
 }
 
