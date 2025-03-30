@@ -43,12 +43,21 @@ struct s_socketcan_gw_rule {
 	struct can_filter filter;
  };
 typedef struct s_socketcan_gw_rule socketcan_gw_rule_t;
- 
+
+struct s_socketcan_gw_rules {
+	size_t rule_num;
+	socketcan_gw_rule_t **rules;
+	// internal use
+	size_t array_num;
+ };
+typedef struct s_socketcan_gw_rules socketcan_gw_rules_t;
 
 int cangw_add_rule(socketcan_gw_rule_t *rule);
 int cangw_delete_rule(socketcan_gw_rule_t *rule);
 int cangw_clean_rule(void);
- 
+int cangw_get_rules(socketcan_gw_rules_t **gw_rules);
+int cangw_release_rules(socketcan_gw_rules_t *gw_rules);
+
  #ifdef __cplusplus
  }
  #endif
