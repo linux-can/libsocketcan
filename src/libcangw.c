@@ -520,7 +520,7 @@ int cangw_get_rules(socketcan_gw_rules_t **gw_rules)
 		if (parse_listing_data(pgw_rules, rxbuf, ret))
 			break;
 	}
-	print_gw_rules(pgw_rules);
+
 	(*gw_rules) = pgw_rules;
 
 do_return:

@@ -19,8 +19,4 @@ libsocketcan_la_LDFLAGS = \
 MAINTAINERCLEANFILES = \
 	GNUmakefile.in
 
-bin_PROGRAMS = gwtwst
-
-gwtwst_SOURCES = test/gwtest.c
-
 CLEANFILES = *.gcda *.gcno

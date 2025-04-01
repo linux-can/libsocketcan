@@ -3,6 +3,10 @@ SUBDIRS = \
 	config \
 	src
 
+if ENABLE_TEST
+SUBDIRS += test
+endif
+
 EXTRA_DIST = \
 	autogen.sh \
 	config/m4/.secret-world-domination-project

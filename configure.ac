@@ -95,7 +95,7 @@ if test "${CONFIG_DEBUG}" = "yes"; then
     CFLAGS="${CFLAGS} -Werror -Wsign-compare -Wfloat-equal -Wformat-security -g -O1"
     AC_DEFINE(DEBUG, 1, [debugging])
 else
-    CFLAGS="${CFLAGS} -O2"
+    CFLAGS="${CFLAGS} -g -O2"
 fi
 
 
@@ -141,12 +141,25 @@ if test "$enable_address_sanitizer" = "yes"; then
     CFLAGS="${CFLAGS} -fsanitize=address"
 fi
 
+#
+# Enable unit test
+#
+AC_ARG_ENABLE([test],
+  [AS_HELP_STRING([--enable-test], [Enable unit test build (cmocka is required, default is no])],
+  [:],
+  [enable_test=no])
+AM_CONDITIONAL([ENABLE_TEST], [test "$enable_test" = "yes"])
+AS_CASE(
+  ["$enable_test"],
+  [yes], [PKG_CHECK_MODULES([CMOCKA], [cmocka])],[])
+
 AC_CONFIG_FILES([
 	GNUmakefile
 	config/libsocketcan.pc
 	config/GNUmakefile
 	include/GNUmakefile
 	src/GNUmakefile
+	test/GNUmakefile
 	])
 AC_OUTPUT
 
