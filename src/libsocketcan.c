@@ -66,6 +66,8 @@
 #define GET_BERR_COUNTER 7
 #define GET_XSTATS 8
 #define GET_LINK_STATS 9
+#define GET_DATA_BITTIMING 10
+#define GET_DATA_BITTIMING_CONST 11
 
 struct get_req {
 	struct nlmsghdr n;
@@ -529,7 +531,26 @@ static int do_get_nl_link(int fd, __u8 acquire, const char *name, void *res)
 					fprintf(stderr, "no berr_counter data found\n");
 
 				break;
+			case GET_DATA_BITTIMING:
+				if (can_attr[IFLA_CAN_DATA_BITTIMING]) {
+					memcpy(res,
+					       RTA_DATA(can_attr[IFLA_CAN_DATA_BITTIMING]),
+					       sizeof(struct can_bittiming));
+					ret = 0;
+				} else
+					fprintf(stderr, "no bittiming data found\n");
 
+				break;
+			case GET_DATA_BITTIMING_CONST:
+				if (can_attr[IFLA_CAN_DATA_BITTIMING_CONST]) {
+					memcpy(res,
+					       RTA_DATA(can_attr[IFLA_CAN_DATA_BITTIMING_CONST]),
+					       sizeof(struct can_bittiming_const));
+					ret = 0;
+				} else
+					fprintf(stderr, "no bittiming_const data found\n");
+
+				break;
 			default:
 				fprintf(stderr, "unknown acquire mode\n");
 			}
@@ -1036,6 +1057,42 @@ int can_set_bitrate_samplepoint(const char *name, __u32 bitrate,
 
 /**
  * @ingroup extern
+ * can_set_canfd_bitrates_samplepoint - setup the bitrate.
+ *
+ * @param name name of the can device. This is the netdev name, as ifconfig -a shows
+ * in your system. usually it contains prefix "can" and the numer of the can
+ * line. e.g. "can0"
+ * @param bitrate bitrate of the can bus
+ * @param sample_point sample point value
+ * @param dbitrate dbitrate of the can bus
+ * @param dsample_point dsample point value
+ *
+ * This one is similar to can_set_bitrate, only you can additionally set up the
+ * time point for sampling (sample point) customly instead of using the
+ * CIA recommended value. sample_point can be a value between 0 and 999.
+ *
+ * @return 0 if success
+ * @return -1 if failed
+ */
+int can_set_canfd_bitrates_samplepoint(const char *name, __u32 bitrate,
+				__u32 sample_point, __u32 dbitrate, __u32 dsample_point)
+{
+	struct can_bittiming bt;
+	struct can_bittiming dbt;
+
+	memset(&bt, 0, sizeof(bt));
+	bt.bitrate = bitrate;
+	bt.sample_point = sample_point;
+
+	memset(&dbt, 0, sizeof(dbt));
+	dbt.bitrate = dbitrate;
+	dbt.sample_point = dsample_point;
+
+	return can_set_canfd_bittiming(name, &bt, &dbt);
+}
+
+/**
+ * @ingroup extern
  * can_get_state - get the current state of the device
  *
  * @param name name of the can device. This is the netdev name, as ifconfig -a shows
@@ -1110,6 +1167,27 @@ int can_get_restart_ms(const char *name, __u32 *restart_ms)
 int can_get_bittiming(const char *name, struct can_bittiming *bt)
 {
 	return get_link(name, GET_BITTIMING, bt);
+}
+
+/**
+ * @ingroup extern
+ * can_get_data_bittiming - get the current bittimnig configuration.
+ *
+ * @param name name of the can device. This is the netdev name, as ifconfig -a shows
+ * in your system. usually it contains prefix "can" and the numer of the can
+ * line. e.g. "can0"
+ * @param dbt pointer to the bittiming struct.
+ *
+ * This one stores the current bittiming configuration.
+ *
+ * Please see can_set_bittiming for more information about bit timing.
+ *
+ * @return 0 if success
+ * @return -1 if failed
+ */
+int can_get_data_bittiming(const char *name, struct can_bittiming *dbt)
+{
+	return get_link(name, GET_DATA_BITTIMING, dbt);
 }
 
 /**
@@ -1192,6 +1270,42 @@ int can_get_bittiming_const(const char *name, struct can_bittiming_const *btc)
 	return get_link(name, GET_BITTIMING_CONST, btc);
 }
 
+/**
+ * @ingroup extern
+ * can_get_data_bittiming_const - get the current bittimnig constant.
+ *
+ * @param name name of the can device. This is the netdev name, as ifconfig -a shows
+ * in your system. usually it contains prefix "can" and the numer of the can
+ * line. e.g. "can0"
+ * @param dbtc pointer to the bittiming constant struct.
+ *
+ * This one stores the hardware dependent bittiming constant. The
+ * can_bittiming_const struct consists:
+ *
+ * @code
+ * struct can_bittiming_const {
+ *	char name[16];
+ *	__u32 tseg1_min;
+ *	__u32 tseg1_max;
+ *	__u32 tseg2_min;
+ *	__u32 tseg2_max;
+ *	__u32 sjw_max;
+ *	__u32 brp_min;
+ *	__u32 brp_max;
+ *	__u32 brp_inc;
+ *	};
+ * @endcode
+ *
+ * The information in this struct is used to calculate the bus bit timing
+ * automatically.
+ *
+ * @return 0 if success
+ * @return -1 if failed
+ */
+int can_get_data_bittiming_const(const char *name, struct can_bittiming_const *dbtc)
+{
+	return get_link(name, GET_BITTIMING_CONST, dbtc);
+}
 
 /**
  * @ingroup extern
