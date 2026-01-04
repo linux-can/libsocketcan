@@ -44,13 +44,16 @@ int can_set_canfd_bittiming(const char *name, struct can_bittiming *bt, struct c
 int can_set_ctrlmode(const char *name, struct can_ctrlmode *cm);
 int can_set_bitrate(const char *name, __u32 bitrate);
 int can_set_bitrate_samplepoint(const char *name, __u32 bitrate, __u32 sample_point);
+int can_set_canfd_bitrates_samplepoint(const char *name, __u32 bitrate, __u32 sample_point, __u32 dbitrate, __u32 dsample_point);
 
 int can_get_restart_ms(const char *name, __u32 *restart_ms);
 int can_get_bittiming(const char *name, struct can_bittiming *bt);
+int can_get_data_bittiming(const char *name, struct can_bittiming *dbt);
 int can_get_ctrlmode(const char *name, struct can_ctrlmode *cm);
 int can_get_state(const char *name, int *state);
 int can_get_clock(const char *name, struct can_clock *clock);
 int can_get_bittiming_const(const char *name, struct can_bittiming_const *btc);
+int can_get_data_bittiming_const(const char *name, struct can_bittiming_const *dbtc);
 int can_get_berr_counter(const char *name, struct can_berr_counter *bc);
 int can_get_device_stats(const char *name, struct can_device_stats *cds);
 int can_get_link_stats(const char *name, struct rtnl_link_stats64 *rls);
